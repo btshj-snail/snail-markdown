@@ -1,4 +1,5 @@
 const path = require('path');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 module.exports = {
   entry: './src/index.js',
@@ -6,19 +7,37 @@ module.exports = {
     filename: 'snailMarkDown.js',
     path: path.resolve(__dirname, 'dist')
   },
-  rules:[
-    {
-      test:/\.css$/,
-      use:[
-        {loader:'style-loader'},
-        {loader:'css-loader',options:{modules:true}}
-      ]
-    },
-    {
-      test:/\.js$/,
-      use:[
-        {exclude: /node_modules/, loader: "babel-loader"}
-      ]
-    }
-  ]
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: [
+          {
+            loader: 'style-loader'
+          },
+          {
+            loader: 'css-loader',
+            options: {
+              modules: true
+            }
+          }
+        ]
+      },
+      {
+        test: /\.js$/,
+        exclude: '/node_modules/',
+        use: [{
+         loader: "babel-loader"
+        }]
+      }
+    ]
+  },
+  optimization: {
+    minimizer: [
+      new UglifyJsPlugin()
+    ]
+  },
+  node: {
+    fs: 'empty'
+  }
 };

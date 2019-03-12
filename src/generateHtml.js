@@ -2,7 +2,7 @@
  * @Author: snail 
  * @Date: 2019-03-11 13:36:50 
  * @Last Modified by: snail
- * @Last Modified time: 2019-03-11 17:56:32
+ * @Last Modified time: 2019-03-12 09:53:40
  */
 
 const path = require('path');
@@ -185,4 +185,3 @@ function deal(scanFolder,targetFolder,templatePath){
 
 module.exports = {deal}
 
-// deal('./testData/testMd','./testData/mdDoc','./testData/htmlTemplate.html');
