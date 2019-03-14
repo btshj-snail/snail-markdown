@@ -2,7 +2,7 @@
  * @Author: snail 
  * @Date: 2019-03-11 13:36:50 
  * @Last Modified by: snail
- * @Last Modified time: 2019-03-14 15:42:33
+ * @Last Modified time: 2019-03-14 16:23:11
  */
 
 const path = require('path');
@@ -171,9 +171,18 @@ const generateHtml = {
                 }
                 let content = marked(data);
                     content = markedAgain(content);
-                let result = htmlTemplate.replace(/(<body[^>]*>?)([\s\S]*)(<\/body>)/gi, (a, a1, a2, a3) => {
-                    return a1 + '\n' + content + '\n' + a3;
-                })
+                    let result = ""
+                    var existContainer = /id=[\"\']mdContent[\"\']/gi.test(htmlTemplate);
+                    if(existContainer){
+                        result =  htmlTemplate.replace(/(<div.+?id=[\"\']mdContent[\"\'].*?>)([\s\S])*?(<\/div>?)/gim, (a, a1, a2, a3) => {
+                            return a1 + '\n' + content + '\n' + a3;
+                        })
+                    }else{
+                        result = htmlTemplate.replace(/(<body[^>]*>?)([\s\S]*)(<\/body>)/gi, (a, a1, a2, a3) => {
+                            return a1 + '\n' + content + '\n' + a3;
+                        })
+                    }
+               
                 resolve(result);
             })
         })
