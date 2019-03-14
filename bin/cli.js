@@ -5,8 +5,8 @@
 const program = require('commander');
 const generate = require('../src/generateHtml');
 
-// program
-//   .version('1.0.0','-v --version')
+program
+  .version('1.0.4','-v --version')
 //   .option('-s,--source','set source folder')
 //   .option('-t,--target','set save position of folder')
 //   .option('-p,--html-template','set the template of html file')

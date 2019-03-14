@@ -2,13 +2,13 @@
  * @Author: snail 
  * @Date: 2019-03-11 13:36:50 
  * @Last Modified by: snail
- * @Last Modified time: 2019-03-14 14:05:51
+ * @Last Modified time: 2019-03-14 14:56:40
  */
 
 const path = require('path');
 const fs = require('fs');
 const marked = require('./marked')
-
+const markedAgain = require('./makedAgain')
 
 function deleteAllChildren(path) {
     var files = [];
@@ -170,6 +170,7 @@ const generateHtml = {
                     reject(err)
                 }
                 let content = marked(data);
+                    content = markedAgain(content);
                 let result = htmlTemplate.replace(/(<body[^>]*>?)([\s\S]*)(<\/body>)/gi, (a, a1, a2, a3) => {
                     return a1 + '\n' + content + '\n' + a3;
                 })
@@ -179,6 +180,8 @@ const generateHtml = {
 
     }
 }
+
+
 
 function deal(scanFolder, targetFolder, templatePath) {
     scanFolder = path.resolve(scanFolder)
