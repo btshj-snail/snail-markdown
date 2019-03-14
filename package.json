@@ -1,6 +1,6 @@
 {
   "name": "@runningsnail/markdown",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "resolve markdown,generate html file",
   "main": "snail-markdown",
   "keyword": [

@@ -38,6 +38,13 @@ module.exports = {
     ]
   },
   node: {
-    fs: 'empty'
+    fs: 'empty',
+    console: true,
+    global: true,
+    process: true,
+    Buffer: true,
+    __filename: true,
+    __dirname: true,
+    setImmediate: true
   }
 };

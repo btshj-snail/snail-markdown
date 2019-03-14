@@ -2,7 +2,7 @@
  * @Author: snail 
  * @Date: 2019-03-14 14:55:50 
  * @Last Modified by: snail
- * @Last Modified time: 2019-03-14 14:59:31
+ * @Last Modified time: 2019-03-14 15:46:33
  *  对html字符串进行再次解析,以及逻辑处理.
  */
 const snailMarkedAgain = {
@@ -15,10 +15,10 @@ const snailMarkedAgain = {
      * @param {*} data 
      */
     replaceRelativeMdPathInEl_a(data){
-        return (data||"").replace(/(<a.+?href=[\"\'])(.+?)([\"\'].*>[\s\S]*<\/a>)/gi,(a,a1,a2,a3)=>{
+        return (data||"").replace(/(<a.+?href=[\"\'])(.+?)([\"\'].*?>[\s\S]*?<\/a>?)/gim,(a,a1,a2,a3)=>{
             var content = a2;
             if(/^(\.|\/).*(\.md|\.MD)$/gi.test(a2)){
-                content = a2.replace(/^(\.|\/)(.*?)(\.md|\.MD)$/,(aa,aa1,aa2,aa3)=>{
+                content = a2.replace(/^(\.|\/)(.*?)(\.md|\.MD)$/gim,(aa,aa1,aa2,aa3)=>{
                     return aa1+aa2+".html"
                 })
             }
@@ -29,4 +29,4 @@ const snailMarkedAgain = {
 
 const markedAgain = snailMarkedAgain.resolve;
 
-module.exports = markedAgain;
+exports = module.exports = markedAgain;

@@ -3,10 +3,10 @@
 // console.log('Snail Markdown > ')
 
 const program = require('commander');
-const generate = require('../src/generateHtml');
+const generate = require('../src/index');
 
 program
-  .version('1.0.4','-v --version')
+  .version('1.0.6','-v --version')
 //   .option('-s,--source','set source folder')
 //   .option('-t,--target','set save position of folder')
 //   .option('-p,--html-template','set the template of html file')

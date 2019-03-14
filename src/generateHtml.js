@@ -2,7 +2,7 @@
  * @Author: snail 
  * @Date: 2019-03-11 13:36:50 
  * @Last Modified by: snail
- * @Last Modified time: 2019-03-14 14:56:40
+ * @Last Modified time: 2019-03-14 15:42:33
  */
 
 const path = require('path');
@@ -235,6 +235,4 @@ function deal(scanFolder, targetFolder, templatePath) {
 }
 
 
-module.exports = {
-    deal
-}
+exports = module.exports = {deal};
