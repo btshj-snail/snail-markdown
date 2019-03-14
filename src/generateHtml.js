@@ -2,7 +2,7 @@
  * @Author: snail 
  * @Date: 2019-03-11 13:36:50 
  * @Last Modified by: snail
- * @Last Modified time: 2019-03-12 09:53:40
+ * @Last Modified time: 2019-03-14 14:05:51
  */
 
 const path = require('path');
@@ -11,37 +11,76 @@ const marked = require('./marked')
 
 
 function deleteAllChildren(path) {
-	var files = [];
-	if(fs.existsSync(path)) {
-		files = fs.readdirSync(path);
-		files.forEach(function(file, index) {
-			var curPath = path + "/" + file;
-			if(fs.statSync(curPath).isDirectory()) { // recurse
+    var files = [];
+    if (fs.existsSync(path)) {
+        files = fs.readdirSync(path);
+        files.forEach(function (file, index) {
+            var curPath = path + "/" + file;
+            if (fs.statSync(curPath).isDirectory()) { // recurse
                 deleteAllChildren(curPath);
                 fs.rmdirSync(curPath);
-			} else { // delete file
-				fs.unlinkSync(curPath);
+            } else { // delete file
+                fs.unlinkSync(curPath);
             }
-            
-		});
-		
+
+        });
+
     }
 }
 
-function mkdirsSync(dirname) {  
-    if (fs.existsSync(dirname)) {  
-        return true;  
-    } else {  
-        if (mkdirsSync(path.dirname(dirname))) {  
-            fs.mkdirSync(dirname);  
-            return true;  
-        }  
-    }  
-}  
+function mkdirsSync(dirname) {
+    if (fs.existsSync(dirname)) {
+        return true;
+    } else {
+        if (mkdirsSync(path.dirname(dirname))) {
+            fs.mkdirSync(dirname);
+            return true;
+        }
+    }
+}
 
 
 let htmlTemplate = "";
 const generateHtml = {
+
+    copyFile(sourcePath, targetPath) {
+        var readStream = fs.createReadStream(sourcePath);
+        var writeStream = fs.createWriteStream(targetPath);
+        readStream.pipe(writeStream);
+    },
+    /**
+     * 复制除MD文件意外的其他文件到对应的目录下
+     * @param {*} sourceFolder 
+     * @param {*} targetFolder 
+     */
+    copyNotMdFile(sourceFolder, targetFolder,baseSourceFolder) {
+        baseSourceFolder = baseSourceFolder || sourceFolder
+        let files = null;
+        try {
+            files = fs.readdirSync(sourceFolder)
+        } catch (ex) {
+            console.error(ex);
+        }
+
+        files.forEach(item => {
+            let filedir = path.join(sourceFolder, item);
+            let stat = fs.statSync(filedir);
+            let isFile = stat.isFile();
+            let isDirectory = stat.isDirectory();
+            if (isFile && path.extname(filedir) !== ".md") {
+                let name = path.basename(filedir)
+                let relativeFolder = path.dirname(filedir).replace(baseSourceFolder, '');
+                let generateFolder = path.join(targetFolder, relativeFolder);
+                mkdirsSync(generateFolder)
+
+                generateHtml.copyFile(filedir, path.join(generateFolder, name));
+            }
+            if (isDirectory) {
+                let _r = arguments.callee(filedir, targetFolder,baseSourceFolder);
+            }
+        })
+
+    },
     /**
      * 扫描指定文件夹下的所有文件
      * @param {*} folder 指定文件夹
@@ -108,80 +147,91 @@ const generateHtml = {
      * @param {*} content 
      */
     generateFile(generatePath, content) {
-        return new Promise((resolve,reject)=>{
+        return new Promise((resolve, reject) => {
             const data = new Uint8Array(Buffer.from(content));
             fs.writeFile(generatePath, data, (err) => {
-                if (err){
-                    console.error("生成文件:"+generatePath+'> ERROE!');
+                if (err) {
+                    console.error("生成文件:" + generatePath + '> ERROE!');
                     reject(err);
-                }else{
-                    console.log("生成文件:"+generatePath+'> OK!');
+                } else {
+                    console.log("生成文件:" + generatePath + '> OK!');
                     resolve();
                 }
             });
         });
-        
+
     },
-    resolveFile(filePath,backFun){
-        return new Promise((resolve,reject)=>{
-            fs.readFile(filePath,{encoding:'utf-8'},(err,data)=>{
-                if(err){ reject(err) }
+    resolveFile(filePath, backFun) {
+        return new Promise((resolve, reject) => {
+            fs.readFile(filePath, {
+                encoding: 'utf-8'
+            }, (err, data) => {
+                if (err) {
+                    reject(err)
+                }
                 let content = marked(data);
-                let result = htmlTemplate.replace(/(<body[^>]*>?)([\s\S]*)(<\/body>)/gi,(a,a1,a2,a3)=>{
-                    return a1+'\n'+content +'\n'+a3;
+                let result = htmlTemplate.replace(/(<body[^>]*>?)([\s\S]*)(<\/body>)/gi, (a, a1, a2, a3) => {
+                    return a1 + '\n' + content + '\n' + a3;
                 })
                 resolve(result);
             })
         })
-        
+
     }
 }
 
-function deal(scanFolder,targetFolder,templatePath){
+function deal(scanFolder, targetFolder, templatePath) {
     scanFolder = path.resolve(scanFolder)
     targetFolder = path.resolve(targetFolder)
     templatePath = path.resolve(templatePath);
 
-    if(!htmlTemplate){
-        try{
-           htmlTemplate = fs.readFileSync(templatePath,{encoding:'utf-8'});
-        }catch(ex){
+    if (!htmlTemplate) {
+        try {
+            htmlTemplate = fs.readFileSync(templatePath, {
+                encoding: 'utf-8'
+            });
+        } catch (ex) {
             throw ex;
         }
-       
+
     }
 
 
     deleteAllChildren(targetFolder)
     console.log('清空目标文件夹,OK!')
+
+    generateHtml.copyNotMdFile(scanFolder,targetFolder)
+    console.log('copy非markdown文件,OK!')
+
     let result = generateHtml.scan(scanFolder, ['node_modules', '.git'], 'md');
-    
+
     let promiseAry = []
-    result.forEach((filePath)=>{
+    result.forEach((filePath) => {
         let _p = generateHtml.resolveFile(filePath)
-        .then(content=>{
-            let name = path.basename(filePath,'.md')
-            let relativeFolder = path.dirname(filePath).replace(scanFolder,'');
-            let generateFolder = path.join(targetFolder,relativeFolder);
-            mkdirsSync(generateFolder)
-            let generatePath = path.join(generateFolder,name+'.html');
-            return generateHtml.generateFile(generatePath,content);
-        })
-        .catch(ex=>{
-            throw ex;
-        })
+            .then(content => {
+                let name = path.basename(filePath, '.md')
+                let relativeFolder = path.dirname(filePath).replace(scanFolder, '');
+                let generateFolder = path.join(targetFolder, relativeFolder);
+                mkdirsSync(generateFolder)
+                let generatePath = path.join(generateFolder, name + '.html');
+                return generateHtml.generateFile(generatePath, content);
+            })
+            .catch(ex => {
+                throw ex;
+            })
         promiseAry.push(_p)
     })
     Promise.all(promiseAry)
-    .then(data=>{
-        console.log('Over and OK!')
-    })
-    .catch(ex=>{
-        console.log('Over and Error!')
-    })
-    
+        .then(data => {
+            console.log('Over and OK!')
+        })
+        .catch(ex => {
+            console.log('Over and Error!')
+        })
+
 }
 
 
-module.exports = {deal}
-
+module.exports = {
+    deal
+}
